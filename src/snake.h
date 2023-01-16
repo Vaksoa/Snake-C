@@ -11,6 +11,11 @@ typedef struct Segment {
     int y;
 } Segment;
 
+typedef struct SegmentNode {
+    Segment data;
+    struct SegmentNode* next;
+} SegmentNode;
+
 typedef enum {
     UP,
     DOWN,
@@ -21,9 +26,8 @@ typedef enum {
 typedef struct Snake {
     int length;
     Segment head;
-    Segment* body;
+    SegmentNode* body;
     Direction dir;
-    bool hasMoved;
 } Snake;
 
 // Creates a new snake at the specified position

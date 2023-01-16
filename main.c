@@ -13,7 +13,19 @@ int main(int argc, char* argv[]) {
 
     // Create the window and renderer
     SDL_Window* window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    if (!window) {
+        printf("Error creating window: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!renderer) {
+        printf("Error creating renderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
     // Create the snake and food
     Snake snake = create_snake(WIDTH / 2, HEIGHT / 2);
@@ -28,41 +40,32 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_QUIT) {
                 running = 0;
             } else if (event.type == SDL_KEYDOWN) {
-                if(snake.length > 2){
                     switch (event.key.keysym.sym) {
                         case SDLK_UP:
-                            if (snake.dir != DOWN)
+                            if (snake.length > 1 && snake.dir != DOWN)
+                                snake.dir = UP;
+                            else if (snake.length == 1)
                                 snake.dir = UP;
                             break;
                         case SDLK_DOWN:
-                            if (snake.dir != UP)
+                            if (snake.length > 1 && snake.dir != UP)
+                                snake.dir = DOWN;
+                            else if (snake.length == 1)
                                 snake.dir = DOWN;
                             break;
                         case SDLK_LEFT:
-                            if (snake.dir != RIGHT)
+                            if (snake.length > 1 && snake.dir != RIGHT)
+                                snake.dir = LEFT;
+                            else if (snake.length == 1)
                                 snake.dir = LEFT;
                             break;
                         case SDLK_RIGHT:
-                            if (snake.dir != LEFT)
+                            if (snake.length > 1 && snake.dir != LEFT)
+                                snake.dir = RIGHT;
+                            else if (snake.length == 1)
                                 snake.dir = RIGHT;
                             break;
                     }
-                } else {
-                    switch (event.key.keysym.sym) {
-                        case SDLK_UP:
-                            snake.dir = UP;
-                            break;
-                        case SDLK_DOWN:
-                            snake.dir = DOWN;
-                            break;
-                        case SDLK_LEFT:
-                            snake.dir = LEFT;
-                            break;
-                        case SDLK_RIGHT:
-                            snake.dir = RIGHT;
-                            break;
-                    }
-                }
             }
         }
 
@@ -73,10 +76,14 @@ int main(int argc, char* argv[]) {
         if (check_collision(snake, food)) {
             food = create_food();
             grow_snake(&snake);
-            snake.body[snake.length - 1] = snake.head;
+            SegmentNode* current = snake.body;
+            while (current->next != NULL) {
+                current = current->next;
+            }
+            current->data = snake.head;
         }
 
-        if (check_collision_with_walls(snake, WIDTH, HEIGHT) || check_collision_with_body(snake)) {
+        if (check_collision_with_walls(snake, WIDTH, HEIGHT) || snake.length > 1 && check_collision_with_body(snake)) {
             printf("Game Over\n");
             running = 0;
         }

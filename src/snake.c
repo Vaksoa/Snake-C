@@ -3,18 +3,23 @@
 #include "snake.h"
 #include "global.h"
 
+SegmentNode* create_snake_node(Segment data, SegmentNode* next) {
+    SegmentNode* node = (SegmentNode*) malloc(sizeof(SegmentNode));
+    node->data = data;
+    node->next = next;
+    return node;
+}
+
 // Creates a new snake at the specified position
 Snake create_snake(int x, int y) {
     Snake snake;
-    snake.length = 2;
+    snake.length = 1;
     snake.head.x = x;
     snake.head.y = y;
-    snake.body = NULL;
+    snake.body = create_snake_node(snake.head, NULL);;
     snake.dir = RIGHT;
-    snake.hasMoved = false;
     return snake;
 }
-
 
 // Destroys the snake and frees any allocated memory
 void destroy_snake(Snake* snake) {
@@ -23,12 +28,6 @@ void destroy_snake(Snake* snake) {
 
 // Moves the snake in the current direction
 void update_snake(Snake* snake) {
-    // Move the body segments forward
-    if (snake->body != NULL) {
-        for (int i = snake->length - 1; i > 0; i--) {
-            snake->body[i] = snake->body[i-1];
-        }
-    }
     // Move the head in the current direction
     switch (snake->dir) {
         case UP:
@@ -44,20 +43,19 @@ void update_snake(Snake* snake) {
             snake->head.x += BLOCK_SIZE;
             break;
     }
-    // Add the new head to the body
-    if (snake->body != NULL)
-        snake->body[0] = snake->head;
-    snake->hasMoved = true;
+
+    SegmentNode* current = snake->body;
+    while (current->next != NULL) {
+        current->data = current->next->data;
+        current = current->next;
+    }
+    current->data = snake->head;
 }
 
 // Adds a segment to the end of the snake
 void grow_snake(Snake* snake) {
-    if(snake->body == NULL){
-        snake->body = malloc(sizeof(Segment));
-    }else{
-        snake->body = realloc(snake->body, sizeof(Segment) * (snake->length + 1));
-    }
     snake->length++;
+    snake->body = create_snake_node(snake->head, snake->body);
 }
 
 // Renders the snake on the specified renderer
@@ -65,12 +63,12 @@ void render_snake(SDL_Renderer* renderer, Snake snake) {
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_Rect rect = {snake.head.x, snake.head.y, BLOCK_SIZE, BLOCK_SIZE};
     SDL_RenderFillRect(renderer, &rect);
-    if (snake.body != NULL) {
-        for (int i = 0; i < snake.length - 1; i++) {
-            rect.x = snake.body[i].x;
-            rect.y = snake.body[i].y;
-            SDL_RenderFillRect(renderer, &rect);
-        }
+    SegmentNode* current = snake.body;
+    while (current != NULL) {
+        rect.x = current->data.x;
+        rect.y = current->data.y;
+        SDL_RenderFillRect(renderer, &rect);
+        current = current->next;
     }
 }
 
@@ -86,12 +84,12 @@ int check_collision_with_walls(Snake snake, int screen_width, int screen_height)
 
 // Returns 1 if the snake is colliding with its own body, 0 otherwise
 int check_collision_with_body(Snake snake) {
-//    if(snake.body != NULL){
-//        for (int i = 0; i < snake.length - 1; i++) {
-//            if (snake.head.x == snake.body[i].x && snake.head.y == snake.body[i].y) {
+//    SegmentNode* current = snake.body;
+//    while (current != NULL) {
+//        if (current->data.x == snake.head.x && current->data.y == snake.head.y) {
 //                return 1;
-//            }
 //        }
+//        current = current->next;
 //    }
     return 0;
 }

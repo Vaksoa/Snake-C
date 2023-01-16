@@ -17,7 +17,8 @@ $ make
 - [ ] Add more game logic (e.g. score, game over, etc.)
 - [ ] Add a UI (e.g. main menu, pause, etc.)
 - [ ] Performance improvements (for experience and fun)
-  - [ ] Use linked lists instead of arrays
+  - [x] Improve the input handling
+  - [x] Use linked lists instead of arrays
   - [ ] Use 2D arrays for storing the game state
   - [ ] Use separate threads for logic and rendering
   - [ ] Use spatial partitioning for collision detection
